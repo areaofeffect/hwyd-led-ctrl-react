@@ -3,8 +3,6 @@ import Led from '../imports/api/led.js'
 import { connect } from 'mqtt/lib/connect';
 import SerialPort from 'serialport';
  
-
-
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
 var port = new SerialPort('/dev/cu.usbmodem1421', {
@@ -22,6 +20,33 @@ function onData(data) {
 // our callback function must be wrapped in Meteor.bindEnvironment to avoid Fiber errors
 parser.on('data', Meteor.bindEnvironment(onData));
 
+// Open errors will be emitted as an error event
+port.on('error', function(err) {
+  console.log('Error: ', err.message);
+})
+
+
+Meteor.methods({
+  'serial.write'(pixels) {
+    //console.log("serial.write", pixels);
+    var pixelStr = "";
+    for (var i = 0, len = pixels.length; i < len; i++) {
+      pixelStr += pixels[i].r + ",";
+      pixelStr += pixels[i].g + ",";
+      pixelStr += pixels[i].b + "|"
+    }
+
+    pixelStr += '/r'
+    console.log(pixelStr, "length", pixelStr.split('|').length);
+
+    port.write(pixelStr, function(err) {
+    if (err) {
+      return console.log('Error on write: ', err.message);
+    }
+    console.log('message written');
+  });
+  }
+})
 
 export const config = {
   mqttHost: "mqtt://127.0.0.1",

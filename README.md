@@ -6,7 +6,7 @@ Download these files to your computer
 
 ## 2
 
-Connect your Arduino to your computer via USB and run {arduino sketch TBD}
+Connect your Arduino to your computer via USB and run this [Arduino sketch](https://create.arduino.cc/editor/kandizzy/fbbf4417-436c-4f52-9d7a-d335af095458/preview)
 
 How to find the path to your serial port
 
@@ -14,7 +14,7 @@ How to find the path to your serial port
 
 
 ## 3
-Edit the `server/main.js` files on [line 20](https://github.com/areaofeffect/hwyd-led-ctrl-react/blob/master/server/main.js#L20) with your serial port from step 2
+Edit the `server/main.js` files on [line 20](https://github.com/areaofeffect/hwyd-led-ctrl-react/blob/master/server/main.js#L83) with your serial port from step 2
 
 ## 4
 In Terminal, `cd` into this directory (serial-mqtt-app) and then run the following commands:

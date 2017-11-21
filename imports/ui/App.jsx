@@ -17,12 +17,9 @@ class App extends Component {
  
   }
 
-
   renderDisplay(pixels) {
-    console.log("renderDisplay", pixels);
+    Meteor.call('serial.write', pixels);
   }
-
-
 
   render() {
     return (
