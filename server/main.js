@@ -25,26 +25,31 @@ port.on('error', function(err) {
   console.log('Error: ', err.message);
 })
 
+function writeSerialData(data) {
 
-Meteor.methods({
-  'serial.write'(pixels) {
-    //console.log("serial.write", pixels);
-    var pixelStr = "";
-    for (var i = 0, len = pixels.length; i < len; i++) {
-      pixelStr += pixels[i].r + ",";
-      pixelStr += pixels[i].g + ",";
-      pixelStr += pixels[i].b + "|"
-    }
-
-    pixelStr += '/r'
-    console.log(pixelStr, "length", pixelStr.split('|').length);
-
-    port.write(pixelStr, function(err) {
+  port.write(data, function(err) {
     if (err) {
       return console.log('Error on write: ', err.message);
     }
-    console.log('message written');
+    console.log('wrote', data);
   });
+
+}
+
+
+Meteor.methods({
+  'serial.write'(pixels) {
+    
+    for (var i = 0, len = pixels.length; i < len; i++) {
+      var pixelStr = "";
+      pixelStr += pixels[i].r + ",";
+      pixelStr += pixels[i].g + ",";
+      pixelStr += pixels[i].b + "|"
+      writeSerialData(pixelStr);
+
+    }
+    writeSerialData('/r');
+    
   }
 })
 
