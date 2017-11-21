@@ -1,0 +1,16 @@
+{
+  "name": "hwyd-led-ctrl-react",
+  "private": true,
+  "scripts": {
+    "start": "meteor run"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "meteor-node-stubs": "^0.3.2",
+    "mqtt": "^2.14.0",
+    "react": "^16.1.1",
+    "react-dom": "^16.1.1",
+    "react-p5-wrapper": "https://github.com/kandizzy/react-p5-wrapper/tarball/master",
+    "serialport": "^6.0.4"
+  }
+}
