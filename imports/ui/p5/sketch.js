@@ -37,6 +37,9 @@ export default function sketch (p5) {
   // button
   let sendButton;
 
+  //
+  let localProps = {};
+
   p5.setup = function() {
     p5.createCanvas(800,600);
 
@@ -169,7 +172,8 @@ export default function sketch (p5) {
 
   function sendToDisplay() {
     // this is what gets sent
-    console.log(ledPixels);
+    console.log(localProps, ledPixels);
+    localProps.renderDisplay(ledPixels);
   }
 
 
@@ -395,6 +399,8 @@ export default function sketch (p5) {
 
   // this special function receives data from App.jsx withTracker
   p5.myCustomRedrawAccordingToNewPropsHandler = function (props) {
+    console.log("myCustomRedrawAccordingToNewPropsHandler", props, localProps);
+    localProps = props;
 
   };
 };
