@@ -17,6 +17,10 @@ client.on("connect", function() {
 
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
+var port = new SerialPort('/dev/cu.usbmodem1421', {
+  baudRate: 9600
+});
+port.pipe(parser);
 
 // parse the data from serial into meaningful objects
 function addAscii(data) {
@@ -80,10 +84,7 @@ function addAscii(data) {
   }
 }
 
-var port = new SerialPort('/dev/cu.usbmodem1421', {
-  baudRate: 9600
-});
-port.pipe(parser);
+
 // our callback function must be wrapped in Meteor.bindEnvironment to avoid Fiber errors
 parser.on('data', Meteor.bindEnvironment(addAscii));
 

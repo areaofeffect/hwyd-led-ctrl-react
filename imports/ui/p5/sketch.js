@@ -1,55 +1,112 @@
 // pass in p5.js as function argument p5
 export default function sketch (p5) {
 
-  console.log(p5);
-
-  // display size
-  let gridWidth = 8;
-  let gridHeight = 5;
-
   // sliders
   let rSlider, gSlider, bSlider, fSlider; // control sliders
-  let h, s, b; // hue saturation brightness
+  let h, s, b;  // hue saturation brightness (this is really rgb for testing but should be changed to HSB)
   let faderVal; // fader Channel 1 and Channel 2
 
   // dropdowns
   let imageSelect;
   let gifSelect;
 
-  // image
+  // preview images
   let testImg;
+  let testGif;
   let imageMask;
 
   // buffers
-  let ouputBuffer;
+  let ouputBuffer; // fbo to mix frames and images
+
+  // display size
+  let gridWidth = 8;
+  let gridHeight = 5;
 
   // scale
-  let vScale = 20;
+  let vScale = 20; // the downsampled pixels
 
-  // display
+  // display array -> can be sent to hardware
   let ledPixels = [];
 
-  // gif
-  let testGif;
-
-  // checkbox
+  // checkboxes
   let enableGif;
   let enableDrawable;
-  let gifBool = false;
-  let drawBool = false;
+  let gifBool = false; // is enabled or not
+  let drawBool = false; // is enabled or not
 
-  // socket
-  let socket;
+  // button
+  let sendButton;
 
   p5.setup = function() {
     p5.createCanvas(800,600);
 
-    testImg = p5.loadImage("/img/gradient.png"); // Load the image
-    //imageMask = loadImage("/img/half.png")
-   
-    testGif = p5.loadGif('material_gradient.gif');
+    // create the UI
+    initUI();
+
+    // default images
+    testImg = p5.loadImage("/img/gradient.png"); // Load the image 
+    testGif = p5.loadGif('/gif/material_gradient.gif');
+
+    // buffers
+    ouputBuffer = p5.createGraphics(160,100);
+    ouputBuffer.pixelDensity(1); // to support retina display
+    //ouputBuffer.scale(1/4);
+
+    // create the pixel objects
+    for (var y = 0; y < 5; y++) {
+      for (var x = 0; x < 8; x++) {
+        ledPixels.push(new LedPixel(x,y));
+      }
+    }
+  }
 
 
+  p5.draw = function() {
+    p5.background(40);
+
+    p5.noStroke();
+    p5.fill(30);
+    p5.rect(0,0,p5.width,40);
+    p5.textSize(22);
+    p5.fill(255);
+    p5.text("How was your day?", 10, 30);
+
+    p5.textSize(11);
+
+    // process UI elements and update values
+    h = rSlider.value();
+    s = gSlider.value();
+    b = bSlider.value();
+    faderVal = fSlider.value();
+    
+    // this is the frame buffer, the point of it is to preview the output
+    // kinda like an FBO. It is a tad slow though.
+    // this is important because we can apply blendings and such here
+    ouputBuffer.background(0);
+    ouputBuffer.noStroke();
+    ouputBuffer.tint(h,s,b, faderVal); // does this make sense?
+    ouputBuffer.rect(0,0,160,100);
+    ouputBuffer.image(testImg,0,0, 160, 100);
+    ouputBuffer.fill(h,s,b, 255-faderVal);
+    ouputBuffer.rect(0,0,160,100);
+
+    // if gif is enabled draw that to the output buffer too
+    if(gifBool){
+      if (testGif.loaded()) {
+        ouputBuffer.image(testGif,0,0, 160, 100);
+      }
+    }
+
+    calculateDownsample();
+
+    drawUI();
+
+  }
+
+  //
+  // initUI
+  //
+  function initUI() {
     rSlider = p5.createSlider(0, 255, 255);
     gSlider = p5.createSlider(0, 255, 255);
     bSlider = p5.createSlider(0, 255, 255);
@@ -66,26 +123,18 @@ export default function sketch (p5) {
     fSlider.style('width', '80px');
 
     // checkboxes
-    p5.fill(255);
-    enableGif = p5.createCheckbox('enableGif');
-    enableGif.position(580, 220)
+    enableGif = p5.createCheckbox('enable gif layer');
+    enableGif.position(580, 225)
     enableGif.checked(false); // passing in an arg sets its state?
     enableGif.style('color', '#FFF');
     enableGif.changed(enableGifEvent); // even for when the user does something
 
     // checkboxes
-    p5.fill(255);
-    enableGif = p5.createCheckbox('enableDrawable');
+    enableGif = p5.createCheckbox('enable interactive layer');
     enableGif.position(200, 530)
     enableGif.checked(false); // passing in an arg sets its state?
     enableGif.style('color', '#FFF');
     enableGif.changed(enableDrawableEvent); // even for when the user does something
-    
-
-    // buffers
-    ouputBuffer = p5.createGraphics(160,100);
-    ouputBuffer.pixelDensity(1);
-    //ouputBuffer.scale(1/4);
 
     // dropdown
     imageSelect = p5.createSelect();
@@ -96,8 +145,6 @@ export default function sketch (p5) {
     imageSelect.option('tiger.jpg');
     imageSelect.option('tanook.jpg');
     imageSelect.option('half.png');
-    //imageSelect.option('colors1.gif');
-    //imageSelect.option('colors2.gif');
     imageSelect.changed(imageEvent);
 
     // dropdown
@@ -113,81 +160,46 @@ export default function sketch (p5) {
     gifSelect.option('night2.gif');
     gifSelect.option('stars.gif');
     gifSelect.option('psyc.gif');
-    //imageSelect.option('colors1.gif');
-    //imageSelect.option('colors2.gif');
     gifSelect.changed(gifEvent);
 
-    updateFromUI();
+    button = p5.createButton('send to display');
+    button.position(400, 540);
+    button.mousePressed(sendToDisplay);
+  }
 
-    for (var y = 0; y < 5; y++) {
-      for (var x = 0; x < 8; x++) {
-        ledPixels.push(new LedPixel(x,y));
-      }
-    }
-    
+  function sendToDisplay() {
+    // this is what gets sent
+    console.log(ledPixels);
   }
 
 
+  //
+  // Draw UI
+  //
+  function drawUI() {
 
-  function imageEvent() {
-    var item = imageSelect.value();
-    testImg = loadImage("/img" + item); // Load the image
-    testImg.resize(160,100);
-  }
-
-  function gifEvent() {
-    var gifItem = gifSelect.value();
-    testGif = loadGif("/gif" + gifItem);
-  }
-
-  function enableGifEvent() {
-    testGif.pause();
-
-    gifBool = !gifBool;
-
-    if (gifBool)
-      testGif.play();
-    else
-      testGif.pause();
-  }
-
-  function enableDrawableEvent() {
-    drawBool = !drawBool;
-
-  }
-
-  p5.draw = function() {
-    p5.background(30);
-
-    p5.textSize(32);
-    p5.text("LED CTRL", 10, 40);
-    p5.textSize(11);
-
-    //background(h, s, b);
-    updateFromUI();
-
+    // temporary UI and text controls
     // channel 1 controls
     p5.fill(255);
     p5.text("red (" + p5.str(h) + ")", 100, 245);
     p5.text("green (" + p5.str(s) + ")", 100, 265);
     p5.text("blue (" + p5.str(b) + ")", 100, 285);
-    p5.text("channel 1 (HSB)", 10, 220);
+    p5.text("Pick a color", 10, 220);
 
     p5.fill(h,s,b);
     p5.rect(10,100,160,100);
 
     // channel 2 controls
     p5.fill(255);
-    p5.text("channel 2 (image picker)", 390, 220);
-
+    p5.text("Pick an image", 390, 220);
+    p5.text("Enable or disable gif layer", 580, 220);
     p5.fill(127,127,127);
     p5.rect(390,100,160,100);
     p5.image(testImg,390,100,160,100)
 
     // output controls
     p5.fill(255);
-    p5.text("mix preview (ch1 + ch2)", 200, 220);
-
+    p5.text("Crossfade IMAGE / COLOR", 200, 220);
     p5.fill(127,127,127);
     p5.rect(200,100,160,100);
     p5.image(testImg,200,100,160,100);
@@ -195,88 +207,83 @@ export default function sketch (p5) {
     p5.fill(h,s,b, 255-faderVal); // this could be better
     p5.rect(200,100,160,100);
 
+    p5.fill(255,255,0); // yellow
+    p5.text("1. COLOR", 10, 80);
+    p5.text("2. IMAGE PICKER", 390, 80);
+    p5.text("3. GIF ANIMATION", 580, 80);
+    p5.text("OUTPUT PREVIEW (1+2+3)", 10, 380);
+    p5.text("4. INTERACTIVE", 200, 380);
+    p5.text("5. FINAL LED RESULT", 400, 380);
+
+    p5.fill(255); // white
+    p5.text("click to toggle pixels", 200, 520);
+    p5.text("combined layers buffer", 10, 520);
+    p5.text("This is mapped to display.", 400, 520);
+
+    p5.image(testGif, 580, 100, 160,100);
+    p5.image(ouputBuffer, 10, 400);
+
+    if(gifBool){
+      if (!testGif.loaded()) {
+        p5.text("loading gif",60, 460);
+      }
+    }
+
     p5.fill(255);
     p5.text("ch2", 315, 245);
     p5.text("ch1", 200, 245);
     p5.text("fader", 250, 260);
-    
-    // draw to buffers
-    ouputBuffer.background(0);
-    ouputBuffer.noStroke();
-    ouputBuffer.tint(h,s,b, faderVal); // does this make sense?
 
-    ouputBuffer.rect(0,0,160,100);
-    ouputBuffer.image(testImg,0,0, 160, 100);
+    // ui frames
+    p5.noFill();
+    p5.strokeWeight(1);
+    p5.stroke(255);
+    p5.rect(0,60,180,260);
 
-    ouputBuffer.fill(h,s,b, 255-faderVal);
-    ouputBuffer.rect(0,0,160,100);
-
-    if(gifBool){
-      
-      if (testGif.loaded()) {
-        ouputBuffer.image(testGif,0,0, 160, 100);
-      }
-
-    }
-
-    calculateDownsample();
-
-    p5.fill(255);
-    p5.text("frame buffer", 10, 520);
-    p5.text("LED downsample", 400, 520);
-
-    // labels
-    p5.fill(255,255,0);
-    p5.text("color mixer", 10, 80);
-    
-    p5.fill(255,255,0);
-    p5.text("image mixer", 390, 80);
-    
-    // labels
-    p5.fill(255,255,0);
-    p5.text("gif animation", 580, 80);
-
-    p5.fill(255,255,0);
-    p5.text("buffer preview", 10, 380);
-
-    p5.fill(255,255,0);
-    p5.text("interactive", 200, 380);
-
-    p5.fill(255,255,0);
-    p5.text("final result", 400, 380);
-
-    p5.fill(255);
-    p5.text("drawable", 200, 520);
-
-    //testImg.mask(imageMask);
-    p5.image(testGif, 580, 100, 160,100);
-
-    p5.image(ouputBuffer, 10, 400);
-    //console.log(frameRate());
-
-
-    if(gifBool){
-      
-      if (!testGif.loaded()) {
-        text("loading gif",60, 460);
-      }
-
-    }
-
+    p5.rect(380,60,180,260);
+    p5.rect(570,60,180,260);
   }
 
-  function updateFromUI() {
-    // process UI elements and update values
-    h = rSlider.value();
-    s = gSlider.value();
-    b = bSlider.value();
-    faderVal = fSlider.value();
+  //
+  // UI EVENTS - these are triggered from the UI
+  //
+  function imageEvent() { 
+    // triggered when that dropdown changes
+    var item = imageSelect.value();
+    testImg = p5.loadImage("/img/" + item); // Load the image
+    testImg.resize(160,100);
+  }
+
+  function gifEvent() {
+    // triggered when that dropdown changes
+    var gifItem = gifSelect.value();
+    testGif = p5.loadGif("/gif/" + gifItem);
+  }
+
+  function enableGifEvent() {
+    // triggered when the checkbox changes
+    testGif.pause();
+    gifBool = !gifBool;
+
+    if (gifBool) {
+      testGif.play();
+    } else {
+      testGif.pause();
+    }
+  }
+
+  function enableDrawableEvent() {
+    // triggered when the checkbox changes
+    drawBool = !drawBool;
   }
 
   function calculateDownsample() {
+    // takes the pixels from the output buffer
+    // and downsamples them to be displayed on our LED matrix
 
-    ouputBuffer.loadPixels();
-    //loadPixels();
+    ouputBuffer.loadPixels(); // load the pixels
+
+    // loop through
     for (var x = 0; x < 8; x++) {
       for (var y = 0; y < 5; y++) {
         var index = (x*vScale + 1 + (y*vScale * 160))*4;
@@ -284,85 +291,95 @@ export default function sketch (p5) {
         var g = ouputBuffer.pixels[index+1];
         var b = ouputBuffer.pixels[index+2];
 
+        // this value is the 1 demensional index in the 8 * 5 loop
+        // they should calculate sequentially 1,2,3 etc...
         var value = x + y * 8;
         
-        ledPixels[value].index = value;
-        ledPixels[value].x = 200 + x*vScale;
+        // this is our array
+        ledPixels[value].r = r;
+        ledPixels[value].g = g;
+        ledPixels[value].b = b;
+        ledPixels[value].index = value; // -> this to the display
+        ledPixels[value].x = 200 + x*vScale; // vScale is the size of the blocks (20px)
         ledPixels[value].y = 400 + y*vScale;
-        ledPixels[value].display();
+        ledPixels[value].display(); // display renders downsampled pixels at their x,y location
 
-        // this is the final result
+        // TODO: add send to display method
+        // this is not written yet but should basically accept
+        // an array of values and map them to the pixels on the arduino
+
+        // - might have to be an index,r,g,b for each pixel to have color
+        // display.render(ledPixels);
+        
         p5.noStroke();
         
-        if (ledPixels[value].toggle) {
-          if (drawBool) {
+        // INTERACTIVE
+        // loop throught he pixels and calculate which ones are to be masked
+        if (ledPixels[value].toggle) { // if that particular pixel is toggeled
+          if (drawBool) { // is drawing mask enabled?
             p5.fill(255,255,255,255)
-          }else {
-          p5.fill(r,g,b);
-        }
+          } else {
+            p5.fill(r,g,b);
+          }
         } else {
           p5.fill(r,g,b);
         }
-        p5.rect(400 + x*vScale, 400 + y*vScale, 20, 20);
 
+        // this is the final value of the pixel (final result)
+        p5.rect(400 + x*vScale, 400 + y*vScale, 20, 20);
       }
     }
-
-
   }
 
   function mousePressed() {
-
+    // for the interactive panel. this sets drawable pixels on and off
     for (var x = 0; x < ledPixels.length; x++) {
       ledPixels[x].clicked();
     }
-
   }
 
   function LedPixel(x, y) {
-
     this.state = "off";
-    this.toggle = false;
-    this.isHover = false;
-    this.x = x;
-    this.y = y;
-    this.index = 0;
+    this.toggle = false; // have we clicked it or not
+    this.isHover = false; // the the mouse over it
+    this.x = x; // the xpositon to draw
+    this.y = y; // the yposition to draw
+    this.index = 0; // the index of the pixel
+
+    this.r = 0;
+    this.g = 0;
+    this.b = 0;
 
     this.display = function() {
-
       this.checkHover();
 
       if (this.toggle) {
         p5.fill(255);
       } 
-      p5.stroke(1);
 
+      p5.stroke(1);
       p5.rect(this.x,this.y,20,20);
 
+      // show the pixel number over the tile
       p5.fill(0,255,0)
       p5.text(String(this.index),this.x + 5,this.y + 15);
-
     }
 
     this.checkHover = function() {
-
       if (p5.mouseX > this.x && p5.mouseX <= this.x + 20) {
         if (p5.mouseY > this.y && p5.mouseY <= this.y + 20) {
-
           this.isHover = true;
           p5.fill(200);
-
         }
         else {
-        this.isHover = false;
-        p5.fill(120);
+          this.isHover = false;
+          p5.fill(120);
         }
       } 
       else {
         this.isHover = false;
         p5.fill(120);
       }
-
     }
 
     this.clicked = function() {
@@ -374,7 +391,6 @@ export default function sketch (p5) {
         }
       }
     }
-
   };
 
   // this special function receives data from App.jsx withTracker
