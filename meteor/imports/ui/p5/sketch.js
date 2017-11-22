@@ -176,6 +176,10 @@ export default function sketch (p5) {
     localProps.renderDisplay(ledPixels);
   }
 
+  function sendPixels() {
+    console.log("sendPixels");
+  }
+
 
   //
   // Draw UI
@@ -400,7 +404,15 @@ export default function sketch (p5) {
   // this special function receives data from App.jsx withTracker
   p5.myCustomRedrawAccordingToNewPropsHandler = function (props) {
     console.log("myCustomRedrawAccordingToNewPropsHandler", props, localProps);
-    localProps = props;
+
+    if (!localProps.renderDisplay) {
+      localProps = props;
+      
+      setInterval(function() {
+        sendPixels()
+      }, 100);
+    }
+    
 
   };
 };

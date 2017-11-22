@@ -53,7 +53,10 @@ Meteor.methods({
       message += hexValue;
 
     }
-    writeSerialData(message + '#');
+
+    Meteor.setTimeout(function() {
+      writeSerialData(message + '#')
+    }, 100);
     client.publish("ledgrid", message);
     
   }
