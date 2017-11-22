@@ -18,10 +18,12 @@ class App extends Component {
   }
 
   renderDisplay(pixels) {
+    console.log("Rendering Display");
     Meteor.call('serial.write', pixels);
   }
 
   render() {
+
     return (
       <div className="container">
         {/*pass the p5 sktech file into the React wrapper

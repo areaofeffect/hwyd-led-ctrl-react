@@ -6,7 +6,7 @@ const rgbHex = require('rgb-hex');
  
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
-var port = new SerialPort('/dev/cu.usbmodem1421', {
+var port = new SerialPort('/dev/cu.usbmodem145241', {
   baudRate: 9600
 });
 port.pipe(parser);
@@ -39,6 +39,7 @@ function writeSerialData(data) {
 }
 
 
+
 Meteor.methods({
   'serial.write'(pixels) {
 
@@ -53,8 +54,14 @@ Meteor.methods({
       message += hexValue;
 
     }
-    writeSerialData(message + '#');
-    client.publish("ledgrid", message);
+    
+    //writeSerialData(message + '#');
+    
+    Meteor.setTimeout(function() {
+     writeSerialData(message + '#')
+    }, 100);
+    
+    //client.publish("ledgrid", message);
     
   }
 })
