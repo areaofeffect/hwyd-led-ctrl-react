@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import Led from '../imports/api/led.js'
 import { connect } from 'mqtt/lib/connect';
 import SerialPort from 'serialport';
+const rgbHex = require('rgb-hex');
  
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
@@ -26,6 +27,7 @@ port.on('error', function(err) {
 })
 
 function writeSerialData(data) {
+  var buffer = Buffer.from(data);
 
   port.write(data, function(err) {
     if (err) {
@@ -39,19 +41,25 @@ function writeSerialData(data) {
 
 Meteor.methods({
   'serial.write'(pixels) {
-    
+
+    var message = "";
+  
     for (var i = 0, len = pixels.length; i < len; i++) {
-      var pixelStr = "";
-      pixelStr += pixels[i].r + ",";
-      pixelStr += pixels[i].g + ",";
-      pixelStr += pixels[i].b + "|"
-      writeSerialData(pixelStr);
+      
+      var hexValue = rgbHex(pixels[i].r, pixels[i].g, pixels[i].b);
+      if (i < pixels.length-1) {
+        hexValue += "|";
+      }
+      message += hexValue;
 
     }
-    writeSerialData('/r');
+    writeSerialData(message + '#');
+    client.publish("ledgrid", message);
     
   }
 })
+
+ 
 
 export const config = {
   mqttHost: "mqtt://127.0.0.1",
@@ -60,8 +68,23 @@ export const config = {
 
 export const client = connect(config.mqttHost);
 
+client.on('message', function (topic, message) {
+  // message is Buffer
+  // console.log("received_message", message.toString());
+
+  // var splitIntoPixels = message.toString().split("|");
+
+  // for (var i = 0; i < splitIntoPixels.length - 1; i++) {
+  //   console.log(splitIntoPixels[i]);
+  //   writeSerialData(splitIntoPixels[i]);
+  // }
+
+
+})
+
 client.on("connect", function() {
   console.log("---- mqtt client connected ----");
+  client.subscribe("ledgrid");
 })
 
 Meteor.startup(() => {
