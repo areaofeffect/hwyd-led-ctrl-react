@@ -56,9 +56,9 @@ Meteor.methods({
     }
 
 
-    Meteor.setTimeout(function() {
-      writeSerialData(message + '#')
-    }, 100);
+    // Meteor.setTimeout(function() {
+    //   writeSerialData(message + '#')
+    // }, 100);
     client.publish("ledgrid", message);
     
   }

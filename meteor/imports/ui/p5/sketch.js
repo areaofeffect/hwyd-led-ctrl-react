@@ -408,9 +408,9 @@ export default function sketch (p5) {
     if (!localProps.renderDisplay) {
       localProps = props;
       
-      setInterval(function() {
-        sendPixels()
-      }, 100);
+      // setInterval(function() {
+      //   sendPixels()
+      // }, 100);
     }
     
 
