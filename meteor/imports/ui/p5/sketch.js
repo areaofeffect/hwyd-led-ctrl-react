@@ -178,7 +178,7 @@ export default function sketch (p5) {
 
   function sendPixels() {
     console.log("sendPixels");
-    // localProps.renderDisplay(ledPixels);
+    localProps.renderDisplay(ledPixels);
   }
 
 
@@ -409,9 +409,16 @@ export default function sketch (p5) {
     if (!localProps.renderDisplay) {
       localProps = props;
       
-      setInterval(function() {
-        sendPixels()
-      }, 100);
+<<<<<<< Updated upstream
+      // setInterval(function() {
+      //   sendPixels()
+      // }, 100);
+=======
+      //setInterval(function() {
+      //  sendPixels()
+      //}, 100);
+      
+>>>>>>> Stashed changes
     }
     
 

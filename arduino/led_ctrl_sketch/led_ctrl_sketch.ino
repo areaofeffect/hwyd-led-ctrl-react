@@ -29,13 +29,15 @@ void loop() {
   unsigned int   t = 100;   // t: delay time
   if (Serial.available() > 0) {
     
-    String s=Serial.readStringUntil('#');
+    String s=Serial.readStringUntil('|');
     //Serial.print('revcd ');
     Serial.println(s);
+    String hexValue = s;
+    Serial.print('hexValue');
     
     for(byte i=0; i<ns_strip.numCells(); i++) {
     
-      String hexValue = getValue(s, '|', i);
+       //getValue(s, '|', i);
       // Serial.print('hexValue');
       // Serial.print(" ");
       // Serial.print(i);
