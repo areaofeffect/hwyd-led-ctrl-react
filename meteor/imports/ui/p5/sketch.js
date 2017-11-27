@@ -178,6 +178,7 @@ export default function sketch (p5) {
 
   function sendPixels() {
     console.log("sendPixels");
+    // localProps.renderDisplay(ledPixels);
   }
 
 
