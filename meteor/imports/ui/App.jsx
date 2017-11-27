@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import P5Wrapper from 'react-p5-wrapper';
-import sketch from './p5/sketch.js';
+import sketch from './p5/sketch-basic.js';
 import { withTracker } from 'meteor/react-meteor-data';
 import { Led } from '../api/led.js';
 
@@ -17,11 +17,12 @@ class App extends Component {
  
   }
 
+  // this happens when we click the button
   renderDisplay(pixels) {
-    console.log("Rendering Display");
     Meteor.call('serial.write', pixels);
   }
 
+  // render the html to the page
   render() {
 
     return (
