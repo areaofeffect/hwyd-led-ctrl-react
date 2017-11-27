@@ -6,21 +6,16 @@ const rgbHex = require('rgb-hex');
  
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
-var port = new SerialPort('/dev/cu.usbmodem145241', {
-  baudRate: 115200
+var port = new SerialPort('/dev/cu.usbmodem141241', {
+  baudRate: 9600
 });
 port.pipe(parser);
 
-// global ok?
-var message = "yo";
 
 // parse the data from serial into meaningful objects
 function onData(data) {
   console.log("meteor onData: " + data);
   
-  if (data.trim() == "RDY") {
-    writeSerialData(message + '|'); // write data to the port
-  }
   // send the character over mqtt
   // client.publish("led", text);
 }
@@ -55,25 +50,15 @@ function writeSerialData(data) {
 Meteor.methods({
   'serial.write'(pixels) {
 
-    for (var i = 0; i < pixels.length; i++) {
-      // get RGB from hex data
-      var hexValue = rgbHex(pixels[i].r, pixels[i].g, pixels[i].b);
-      if (i < pixels.length-1) {
-        hexValue += ",";
-      }
-      
-      message += hexValue;
-      
-      //writeSerialData("#" + hexValue + ":" + i + ">") // write data to the port
-    }
+    // global ok?
+    var message = "";
 
+    // get RGB from hex data
+    var hexValue = rgbHex(pixels[0], pixels[1], pixels[2]);
 
-    // Meteor.setTimeout(function() {
-    //   writeSerialData(message + '#')
-    // }, 100);
-    
-    client.publish("ledgrid", message);
-    writeSerialData("RCV 512\r") // write data to the port
+    message = hexValue;
+
+    writeSerialData(message + '|'); // write data to the port
     client.publish("ledgrid", message); // publish via mqtt
     
   }
