@@ -17,7 +17,7 @@ How to find the path to your serial port
 Edit the `server/main.js` files on [line 20](https://github.com/areaofeffect/hwyd-led-ctrl-react/blob/master/meteor/server/main.js#L83) with your serial port from step 2
 
 ## 4
-In Terminal, `cd` into this directory (hwyd-led-ctrl-react) and then run the following commands:
+In Terminal, `cd` into this directory (hwyd-led-ctrl-react/meteor) and then run the following commands:
 
 	meteor npm install 
 	meteor add react-meteor-data
