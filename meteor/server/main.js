@@ -1,12 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import Led from '../imports/api/led.js'
+import Coders from '../imports/api/coders.js'
 import { connect } from 'mqtt/lib/connect';
 import SerialPort from 'serialport';
 const rgbHex = require('rgb-hex');
  
 const Readline = SerialPort.parsers.Readline;
 const parser = new Readline();
-var port = new SerialPort('/dev/cu.usbmodem141241', {
+var port = new SerialPort('/dev/cu.usbmodem1421', {
   baudRate: 9600
 });
 port.pipe(parser);
@@ -46,6 +47,10 @@ function writeSerialData(data) {
 
 }
 
+function saveCoderInDataBase(name) {
+  Meteor.call('coders.upsert', name);
+}
+
 // meteor
 Meteor.methods({
   'serial.write'(pixels) {
@@ -61,6 +66,12 @@ Meteor.methods({
     writeSerialData(message + '|'); // write data to the port
     client.publish("ledgrid", message); // publish via mqtt
     
+  },
+  'send.name'(name) {
+
+    console.log("Meteor send.name", name);
+    client.publish("name", name); // publish via mqtt
+
   }
 })
 
@@ -73,22 +84,20 @@ export const config = {
 
 export const client = connect(config.mqttHost);
 
+function onMessage(topic, message) {
+  if (topic === "name") {
+    console.log("message", message.toString());
+    Meteor.call('coders.upsert',name);
+  }
+}
+
 // client callback
-client.on('message', function (topic, message) {
-  // message is Buffer
-  // console.log("received_message", message.toString());
-
-  // var splitIntoPixels = message.toString().split("|");
-
-  // for (var i = 0; i < splitIntoPixels.length - 1; i++) {
-  //   console.log(splitIntoPixels[i]);
-  //   writeSerialData(splitIntoPixels[i]);
-  // }
-})
+client.on('message', Meteor.bindEnvironment(onMessage));
 
 client.on("connect", function() {
   console.log("---- mqtt client connected ----");
   client.subscribe("ledgrid"); // subscribe to the ledgrid topic
+  client.subscribe("name");
 })
 
 Meteor.startup(() => {

@@ -19,6 +19,9 @@ export default function sketch (p5) {
 
   let localProps = {};
 
+  // send name button
+  let nameButton;
+
   p5.setup = function() {
     p5.createCanvas(300,400);
 
@@ -68,6 +71,10 @@ export default function sketch (p5) {
     button = p5.createButton('send to display');
     button.position(25, 300);
     button.mousePressed(sendToDisplay);
+
+    nameButton = p5.createButton('send name');
+    nameButton.position(25, 320);
+    nameButton.mousePressed(sendName);
   }
 
   function sendToDisplay() {
@@ -79,6 +86,11 @@ export default function sketch (p5) {
     // this is what gets sent
     console.log(localProps, ledColor);
     localProps.renderDisplay(ledColor);
+  }
+
+  function sendName() {
+    console.log("just clicked send name!");
+    localProps.sendName('carrie');
   }
 
   function sendPixels() {
@@ -111,8 +123,26 @@ export default function sketch (p5) {
   // this special function receives data from App.jsx withTracker
   p5.myCustomRedrawAccordingToNewPropsHandler = function (props) {
     console.log("myCustomRedrawAccordingToNewPropsHandler", props, localProps);
+
+
     if (!localProps.renderDisplay) {
-      localProps = props;
+      localProps.renderDisplay = props.renderDisplay;
     }
+
+    if (!localProps.sendName) {
+      localProps.sendName = props.sendName;
+    }
+
+
   };
 };
+
+
+
+
+
+
+
+
+
+
