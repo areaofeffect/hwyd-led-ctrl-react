@@ -9,6 +9,8 @@
 NS_Rainbow ns_strip = NS_Rainbow(N_CELL,PIN);
 
 int inByte = 0;         // incoming serial byte
+String inputString = "";         // a String to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
 
 void setup() {
   
@@ -20,30 +22,17 @@ void setup() {
   delay(100);
   ns_strip.begin();
   ns_strip.clear();
-  ns_strip.setBrightness(128);  // range: 0 ~ 255
+  ns_strip.setBrightness(200);  // range: 0 ~ 255
+  inputString.reserve(200);
   
   establishContact();  // send a byte to establish contact until receiver responds
 }
 
-void loop() {
-  unsigned int   t = 100;   // t: delay time
-  if (Serial.available() > 0) {
-    
-    String s=Serial.readStringUntil('|');
-    //Serial.print('revcd ');
-    Serial.println(s);
-    String hexValue = s;
-    Serial.print('hexValue');
-    
-    for(byte i=0; i<ns_strip.numCells(); i++) {
-    
-       //getValue(s, '|', i);
-      // Serial.print('hexValue');
-      // Serial.print(" ");
-      // Serial.print(i);
-      // Serial.print(" : ");
-      // Serial.println(hexValue);
-      
+void setColors(String hexValue) {
+  unsigned int   t = 47;   // t: delay time
+  
+  for(byte i=0; i<ns_strip.numCells(); i++) {
+
       uint32_t rgb;
       if (1 == sscanf (hexValue.c_str(), "%lx", &rgb) ) {
         int red = rgb >> 16 ;
@@ -53,17 +42,42 @@ void loop() {
       }
     }
     
-    Serial.flush();
-    
-  }
-  
   ns_strip.show();
   delay(t); 
 }
 
+void loop() {
+  
+  
+  if (stringComplete) {
+    setColors(inputString);
+    inputString = "";
+    stringComplete = false;
+  }
+}
+
+/*
+  SerialEvent occurs whenever a new data comes in the hardware serial RX. This
+  routine is run between each time loop() runs, so using delay inside loop can
+  delay response. Multiple bytes of data may be available.
+*/
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag so the main loop can
+    // do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+}
+
 void establishContact() {
   while (Serial.available() <= 0) {
-    Serial.println("0,0,0");   // send an initial string
+    Serial.print("READY");   // send an initial string
     delay(300);
   }
 }
