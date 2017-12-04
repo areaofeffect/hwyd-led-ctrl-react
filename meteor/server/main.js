@@ -118,9 +118,9 @@ function makeColorGradient(frequency1, frequency2, frequency3,
 function getRainbowLoop() {
   var center = 128;
   var width = 127;  
-  var steps = 36;
+  var steps = 72;
   var frequency = 2*Math.PI/steps;
-  rainbowLoop = makeColorGradient(frequency,frequency,frequency,0,2,4,center,width,36);
+  rainbowLoop = makeColorGradient(frequency,frequency,frequency,0,2,4,center,width,72);
   rainbowInterval = Meteor.setInterval(function () {
     sendRainbow();
   }, 50);
