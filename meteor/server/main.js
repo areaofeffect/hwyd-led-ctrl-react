@@ -123,7 +123,7 @@ function getRainbowLoop() {
   rainbowLoop = makeColorGradient(frequency,frequency,frequency,0,2,4,center,width,72);
   rainbowInterval = Meteor.setInterval(function () {
     sendRainbow();
-  }, 50);
+  }, 60);
 }
 
 Meteor.startup(() => {
