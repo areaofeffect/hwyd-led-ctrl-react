@@ -1,58 +1,39 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import P5Wrapper from 'react-p5-wrapper';
-import sketch from './p5/sketch-basic.js';
-import { withTracker } from 'meteor/react-meteor-data';
-import { Led } from '../api/led.js';
+import React, { useState } from 'react';
+import { ReactP5Wrapper } from "react-p5-wrapper";
+import { Ascii } from '../api/ascii.js';
+import sketch from './p5/sketch.js';
+import { useTracker } from 'meteor/react-meteor-data';
+
+export const App = () => {
+
+  // Meteor.call('send_data', "FF0000|00FF00|0000FF|",  function(err, response) {
+  //   console.log("err: " +err + " response: " + response);
+  // });
+
+  const { ascii, isLoading } = useTracker(() => {
+    const noDataAvailable = { ascii: {text: ''} };
+    const handler = Meteor.subscribe('ascii');
+    if (!handler.ready()) {
+      return { ...noDataAvailable, isLoading: true };
+    }
+    const ascii = Ascii.find({}, { sort: { updatedAt: -1 } }).fetch()[0]; 
+    return { ascii };
+  });
 
 
-class App extends Component {
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      led: [],
-    };
- 
-  }
-
-
-  // this happens when we click the render display button
-  sendName(name) {
-    console.log('App.jsx received name', name);
-    Meteor.call('send.name', name);
-  }
-
-  // this happens when we click the render display button
-  renderDisplay(pixels) {
+   // this happens when we click the render display button
+  const renderDisplay = (pixels) => {
     Meteor.call('serial.write', pixels);
   }
 
-  // render the html to the page
-  render() {
-
-    return (
-      <div className="container">
-        {/*pass the p5 sktech file into the React wrapper
-        also pass the ascii prop which will updated based on withTracker below*/}
-        <P5Wrapper sketch={sketch} sendName={this.sendName} renderDisplay={this.renderDisplay} led={this.props.led} />
-      </div>
-    );
-  }
+  return (
+    <div className="container">
+    
+      <h1>LED control</h1>
+      {/*pass the p5 sktech file into the React wrapper
+      also pass the ascii prop which will updated based on withTracker above*/}
+      <ReactP5Wrapper sketch={sketch} renderDisplay={renderDisplay}  />
+    </div>
+  );
 }
 
-App.defaultProps = {
-  led: [],
-};
-
-App.propTypes = {
-  led: PropTypes.array.isRequired,
-};
-
-export default withTracker(props => {
-  Meteor.subscribe('led');
-  return {
-    led: Led.find({}, { sort: { updatedAt: -1 } }).fetch()[0],
-  };
-})(App);
