@@ -1,4 +1,4 @@
-If you have not installed Node or Meteor, follow the steps in [Setting up your development environment](https://github.com/areaofeffect/hello-world/blob/master/week8/README.md#setting-up-your-development-environment) before running this application.
+If you have not installed Node or Meteor, follow the steps in [Setting up your development environment](https://github.com/areaofeffect/hello-world/tree/master/week9#setting-up-your-development-environment) before running this application.
 
 # How to run LEDCtrl
 ## 1 
@@ -14,28 +14,22 @@ How to find the path to your serial port
 
 
 ## 3
-Edit the `server/main.js` files on [line 23](https://github.com/areaofeffect/hwyd-led-ctrl-react/blob/master/meteor/server/main.js#L23) with your serial port from step 2
+Edit the `server/main.js` files on [line 23](https://github.com/areaofeffect/hwyd-led-ctrl-react/blob/v1_branch/meteor/server/main.js#L15) with your serial port from step 2
 
 ## 4
 In Terminal, `cd` into this directory (hwyd-led-ctrl-react/meteor) and then run the following commands:
 
 	meteor npm install 
-	meteor add react-meteor-data
+	
 	
 ## 5
-
-In Finder, navigation to `hwyd-led-ctrl-react/node_modules/p5/lib/addons` and put `p5.gif.js` , `p5.gif.min.js` and `supergif.js` in that folder. These files can be found here: [https://github.com/kandizzy/p5.gif.js](https://github.com/kandizzy/p5.gif.js)
-	
-## 6
 In Terminal run
 
 	meteor
 View the application in your browser at `http://localhost:3000`
 
-## 7
-View MQTT messages in Terminal by running this command
-
-	mosquitto_sub -h 127.0.0.1 -t {your-topic-here}
+## 6
+View MQTT messages MQTTx
 	
 
 
